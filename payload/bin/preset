@@ -1,0 +1,8 @@
+#!/bin/bash
+# Switches the desktop look: preset windows | ubuntu | macos | original
+R="$HOME/.theme-backup"
+case "$1" in
+  original) "$R/original/restore.sh" ;;
+  windows|ubuntu|macos) "$R/$1/apply.sh" ;;
+  *) echo "Usage: preset windows | ubuntu | macos | original"; exit 1 ;;
+esac && echo "$1" > "$R/current"

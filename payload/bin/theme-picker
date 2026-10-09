@@ -1,0 +1,31 @@
+#!/bin/bash
+# Theme picker window (opened from the “Change Theme” desktop launcher).
+R="$HOME/.theme-backup"
+cur=$(cat "$R/current" 2>/dev/null)
+cur_name=$cur
+
+rows=()
+add() { # id, name, description
+  if [ "$1" = "$cur" ]; then rows+=(TRUE); else rows+=(FALSE); fi
+  [ "$1" = "$cur" ] && cur_name=$2
+  rows+=("$1" "$2" "$3")
+}
+add original "Default" "Your original MATE theme"
+add windows  "Windows" "Fluent dark, taskbar at the bottom"
+add macos    "macOS"   "WhiteSur dark, menu bar and auto-hiding dock"
+add ubuntu   "Ubuntu"  "Yaru dark, top bar and dock on the left"
+
+choice=$(zenity --list --radiolist --title="Change Theme" \
+  --text="Current theme: <b>${cur_name:-unknown}</b>" --width=560 --height=380 \
+  --column="" --column="id" --column="Theme" --column="Description" \
+  --hide-column=2 --print-column=2 "${rows[@]}" 2>/dev/null) || exit 0
+
+[ -z "$choice" ] || [ "$choice" = "$cur" ] && exit 0
+
+# Applying takes a few seconds (the panel restarts)
+"$HOME/.local/bin/preset" "$choice" > /tmp/theme-picker-$USER.log 2>&1 &
+pid=$!
+( while kill -0 $pid 2>/dev/null; do echo "#Applying theme…"; sleep 0.5; done ) |
+  zenity --progress --pulsate --auto-close --no-cancel --title="Change Theme" \
+    --text="Applying theme…" --width=300 2>/dev/null
+wait $pid || zenity --error --text="Switching theme failed.\nDetails: /tmp/theme-picker-$USER.log" 2>/dev/null

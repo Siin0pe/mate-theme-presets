@@ -1,0 +1,5 @@
+[Desktop Entry]
+Type=Application
+Name=Firefox
+Exec=/opt/firefox/firefox-bin %u
+Icon=firefox
